@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Image Catalog - ImageGuard{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Available Images</h2>
+    
+    {% if images %}
+    <table>
+        <thead>
+            <tr>
+                <th>Image ID</th>
+                <th>Tags</th>
+                <th>Size</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for image in images %}
+            <tr>
+                <td><code>{{ image.id }}</code></td>
+                <td>
+                    {% for tag in image.tags %}
+                    <span class="badge badge-success">{{ tag }}</span>
+                    {% endfor %}
+                </td>
+                <td>{{ image.size }}</td>
+                <td>{{ image.created }}</td>
+                <td>
+                    <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('Pull command: docker pull {{ image.tags[0] if image.tags else image.id }}')">
+                        📋 Copy Pull Command
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; padding: 2rem; color: #7f8c8d;">
+        No images available. Start by building a new image or pulling base images.
+    </p>
+    <div style="text-align: center; margin-top: 1rem;">
+        <a href="{{ url_for('build') }}" class="btn btn-success">Build Your First Image</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Base OS Images</h2>
+    <p style="margin-bottom: 1rem; color: #555;">The following base OS images are recommended for ImageGuard:</p>
+    <table>
+        <thead>
+            <tr>
+                <th>OS</th>
+                <th>Tag</th>
+                <th>Approximate Size</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Alpine Linux</strong></td>
+                <td><code>alpine:3.19</code></td>
+                <td>~7 MB</td>
+                <td>Minimal, security-focused Linux distribution</td>
+            </tr>
+            <tr>
+                <td><strong>Ubuntu</strong></td>
+                <td><code>ubuntu:22.04</code></td>
+                <td>~30 MB</td>
+                <td>Ubuntu 22.04 LTS (Jammy Jellyfish)</td>
+            </tr>
+            <tr>
+                <td><strong>Ubuntu</strong></td>
+                <td><code>ubuntu:20.04</code></td>
+                <td>~28 MB</td>
+                <td>Ubuntu 20.04 LTS (Focal Fossa)</td>
+            </tr>
+            <tr>
+                <td><strong>Red Hat UBI</strong></td>
+                <td><code>redhat/ubi9-minimal:latest</code></td>
+                <td>~100 MB</td>
+                <td>Red Hat Universal Base Image 9 Minimal</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

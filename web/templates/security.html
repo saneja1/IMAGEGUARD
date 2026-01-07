@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Security Scans - ImageGuard{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;">Security Scan Results</h1>
+
+<div class="card">
+    <h2>Recent Scans</h2>
+    
+    {% if scans %}
+    <table>
+        <thead>
+            <tr>
+                <th>Image</th>
+                <th>Scan Date</th>
+                <th>Status</th>
+                <th>Critical</th>
+                <th>High</th>
+                <th>Medium</th>
+                <th>Low</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for scan in scans %}
+            <tr>
+                <td><code>{{ scan.image }}</code></td>
+                <td>{{ scan.date }}</td>
+                <td>
+                    {% if scan.status == 'passed' %}
+                    <span class="badge badge-success">✓ Passed</span>
+                    {% else %}
+                    <span class="badge badge-danger">✗ Failed</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if scan.critical > 0 %}
+                    <span class="badge badge-danger">{{ scan.critical }}</span>
+                    {% else %}
+                    {{ scan.critical }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if scan.high > 0 %}
+                    <span class="badge badge-warning">{{ scan.high }}</span>
+                    {% else %}
+                    {{ scan.high }}
+                    {% endif %}
+                </td>
+                <td>{{ scan.medium }}</td>
+                <td>{{ scan.low }}</td>
+                <td>
+                    <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.9rem;" onclick="alert('Detailed scan report for {{ scan.image }}')">
+                        📄 View Report
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="text-align: center; padding: 2rem; color: #7f8c8d;">
+        No security scans available yet. Build an image to see security scan results.
+    </p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>About Security Scanning</h2>
+    <p style="line-height: 1.8; color: #555; margin-bottom: 1rem;">
+        ImageGuard uses <strong>Trivy</strong> for comprehensive security scanning of container images. 
+        All images are automatically scanned for vulnerabilities before being pushed to the registry.
+    </p>
+    
+    <h3 style="margin-top: 1.5rem; margin-bottom: 1rem;">Severity Levels:</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Severity</th>
+                <th>Description</th>
+                <th>Action Required</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="badge badge-danger">Critical</span></td>
+                <td>Exploitable vulnerabilities that can lead to system compromise</td>
+                <td><strong>Immediate remediation required</strong></td>
+            </tr>
+            <tr>
+                <td><span class="badge badge-warning">High</span></td>
+                <td>Serious vulnerabilities that should be addressed</td>
+                <td><strong>Remediation recommended</strong></td>
+            </tr>
+            <tr>
+                <td><span class="badge" style="background: #fff3cd; color: #856404;">Medium</span></td>
+                <td>Moderate vulnerabilities with limited impact</td>
+                <td>Monitor and plan remediation</td>
+            </tr>
+            <tr>
+                <td><span class="badge" style="background: #e7f3ff; color: #004085;">Low</span></td>
+                <td>Minor vulnerabilities with minimal impact</td>
+                <td>Informational, no immediate action needed</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div style="margin-top: 1.5rem; padding: 1rem; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+        <strong>Policy:</strong> Images with Critical or High severity vulnerabilities are not pushed to the registry by default. 
+        You can configure thresholds in the security module settings.
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # Docker Registry - stores your container images
+  registry:
+    image: registry:2
+    container_name: imageguard-registry
+    restart: always
+    ports:
+      - "5050:5000"
+    volumes:
+      - ./data:/var/lib/registry
+    environment:
+      REGISTRY_STORAGE_DELETE_ENABLED: "true"
+    networks:
+      - registry-net
+
+  # Registry UI - web interface to browse images
+  registry-ui:
+    image: joxit/docker-registry-ui:latest
+    container_name: imageguard-registry-ui
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      - SINGLE_REGISTRY=true
+      - REGISTRY_TITLE=ImageGuard Local Registry
+      - REGISTRY_URL=http://registry:5050
+      - DELETE_IMAGES=true
+      - SHOW_CONTENT_DIGEST=true
+      - SHOW_CATALOG_NB_TAGS=true
+      - CATALOG_MIN_BRANCHES=1
+      - CATALOG_MAX_BRANCHES=1
+      - TAGLIST_PAGE_SIZE=100
+      - REGISTRY_SECURED=false
+      - CATALOG_ELEMENTS_LIMIT=1000
+    depends_on:
+      - registry
+    networks:
+      - registry-net
+
+networks:
+  registry-net:
+    driver: bridge

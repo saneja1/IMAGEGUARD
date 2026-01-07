@@ -1,0 +1,502 @@
+{% extends "base.html" %}
+
+{% block title %}Build Image - ImageGuard{% endblock %}
+
+{% block content %}
+<h1 style="margin-bottom: 2rem;">Build New Image</h1>
+
+<div class="card">
+    <h2>Image Configuration</h2>
+    <form id="buildForm">
+        <div class="form-group">
+            <label for="baseImage">Base OS / Vendor Image</label>
+            <select id="baseImage" name="baseImage" required>
+                <option value="">Select a base image...</option>
+                {% for img in base_images %}
+                <option value="{{ img.tag }}">{{ img.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="runtime">Runtime (optional)</label>
+            <select id="runtime" name="runtime">
+                <option value="">None (for vendor images)</option>
+                {% for rt in runtimes %}
+                <option value="{{ rt.value }}">{{ rt.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Components (optional)</label>
+            <div class="checkbox-group">
+                {% for comp in components %}
+                <label>
+                    <input type="checkbox" name="components" value="{{ comp.value }}">
+                    {{ comp.name }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="imageName">Image Name</label>
+            <input type="text" id="imageName" name="imageName" placeholder="e.g., my-app-image" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="imageTag">Image Tag</label>
+            <input type="text" id="imageTag" name="imageTag" placeholder="e.g., v1.0.0 or latest" value="latest" required>
+        </div>
+        
+        <button type="submit" class="btn btn-success">🚀 Start Build</button>
+    </form>
+</div>
+
+<div class="card" id="buildHistorySection">
+    <h2>📦 Build History</h2>
+    <p style="color: #7f8c8d; margin-bottom: 1.5rem; font-size: 0.95rem;">Images created through the ImageGuard build process</p>
+    <table id="buildHistoryTable">
+        <thead>
+            <tr>
+                <th>Image Name</th>
+                <th>Tag</th>
+                <th>Base OS</th>
+                <th>Runtime</th>
+                <th>Build Status</th>
+                <th>Security</th>
+                <th>Scan</th>
+                <th>Dockerfile</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody id="buildHistoryBody">
+            <tr>
+                <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 3rem; font-size: 1.1rem;">
+                    No build history yet. Start building images to see them here.
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="card" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #dee2e6;">
+    <div style="display: flex; justify-content: space-around; align-items: center; gap: 2rem; flex-wrap: wrap;">
+        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex: 1; min-width: 250px;">
+            <div style="font-size: 3rem; color: #64748b; margin-bottom: 0.5rem;" id="totalBuiltImages">0</div>
+            <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">Total Built Images</div>
+            <div style="font-size: 0.9rem; color: #7f8c8d;">Successfully built & scanned</div>
+        </div>
+        
+        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex: 1; min-width: 250px;">
+            <div style="font-size: 2rem; color: #64748b; margin-bottom: 1rem;">🚀</div>
+            <button class="btn btn-success" onclick="syncToDockerHub()" style="width: 100%; padding: 1rem; font-size: 1rem;">
+                Sync to Certified Docker Hub
+            </button>
+            <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.75rem;">Push verified images to registry</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for Security Scan Details -->
+<div id="scanModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="margin: 0;">🔒 Security Scan Details</h2>
+            <button onclick="closeScanModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d;">&times;</button>
+        </div>
+        <div id="scanModalContent"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Dockerfile generation templates
+const dockerfileTemplates = {
+    python: (baseImage, version) => `# Python runtime installation
+RUN apt-get update && \\
+    apt-get install -y software-properties-common && \\
+    add-apt-repository ppa:deadsnakes/ppa -y && \\
+    apt-get update && \\
+    apt-get install -y ${version} ${version}-venv ${version}-dev && \\
+    apt-get clean && rm -rf /var/lib/apt/lists/*`,
+    
+    java: (baseImage, version) => `# Java runtime installation
+RUN apt-get update && \\
+    apt-get install -y openjdk-${version.replace('java', '')}-jdk && \\
+    apt-get clean && rm -rf /var/lib/apt/lists/*`,
+    
+    node: (baseImage, version) => `# Node.js runtime installation
+RUN curl -fsSL https://deb.nodesource.com/setup_${version.replace('node', '')}.x | bash - && \\
+    apt-get install -y nodejs && \\
+    apt-get clean && rm -rf /var/lib/apt/lists/*`,
+    
+    go: (baseImage, version) => `# Go runtime installation
+RUN wget https://go.dev/dl/go${version.replace('go', '')}.linux-amd64.tar.gz && \\
+    tar -C /usr/local -xzf go${version.replace('go', '')}.linux-amd64.tar.gz && \\
+    rm go${version.replace('go', '')}.linux-amd64.tar.gz
+ENV PATH="/usr/local/go/bin:$PATH"`
+};
+
+const componentTemplates = {
+    prometheus: `# Prometheus Agent
+RUN wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz && \\
+    tar xvfz node_exporter-1.7.0.linux-amd64.tar.gz && \\
+    cp node_exporter-1.7.0.linux-amd64/node_exporter /usr/local/bin/ && \\
+    rm -rf node_exporter-1.7.0.linux-amd64*`,
+    
+    puppet: `# Puppet Agent
+RUN wget https://apt.puppet.com/puppet7-release-focal.deb && \\
+    dpkg -i puppet7-release-focal.deb && \\
+    apt-get update && \\
+    apt-get install -y puppet-agent && \\
+    rm puppet7-release-focal.deb`,
+    
+    vault: `# HashiCorp Vault Client
+RUN wget https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip && \\
+    unzip vault_1.15.0_linux_amd64.zip && \\
+    mv vault /usr/local/bin/ && \\
+    rm vault_1.15.0_linux_amd64.zip`,
+    
+    logging: `# Custom Logging Agent
+RUN apt-get update && \\
+    apt-get install -y rsyslog && \\
+    apt-get clean && rm -rf /var/lib/apt/lists/*`
+};
+
+// Form submission
+document.getElementById('buildForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(e.target);
+    const components = [];
+    formData.getAll('components').forEach(comp => components.push(comp));
+    
+    const buildConfig = {
+        baseImage: formData.get('baseImage'),
+        runtime: formData.get('runtime'),
+        components: components,
+        imageName: formData.get('imageName'),
+        imageTag: formData.get('imageTag')
+    };
+    
+    // Disable button and show loading
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '⏳ Building... (this may take a few minutes)';
+    submitBtn.style.opacity = '0.6';
+    
+    console.log('Sending build request:', buildConfig);
+    
+    fetch('/api/build', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(buildConfig)
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        submitBtn.style.opacity = '1';
+        
+        if (data.status === 'success') {
+            // Show success message
+            alert('✅ Build completed successfully!\n\n' +
+                  'Image: ' + buildConfig.imageName + ':' + buildConfig.imageTag + '\n' +
+                  'Image ID: ' + data.image_id + '\n' +
+                  'Security Scan: ' + data.security_scan.status.toUpperCase());
+            
+            // Refresh build history
+            loadBuildHistory();
+        } else {
+            alert('❌ Build failed!\n\n' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+        submitBtn.style.opacity = '1';
+        
+        alert('❌ Error triggering build: ' + error);
+    });
+});
+
+// Load build history
+function loadBuildHistory() {
+    fetch('/api/build-history')
+        .then(response => response.json())
+        .then(builds => {
+            const tbody = document.getElementById('buildHistoryBody');
+            
+            if (builds.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                            No build history yet. Start building images to see them here.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = builds.map((build, index) => {
+                const buildStatusBadge = build.build_status === 'success' || build.build_status === 'built'
+                    ? '<span class="badge badge-success">✓ Built</span>'
+                    : '<span class="badge badge-danger">✗ Failed</span>';
+                
+                let securityStatusBadge;
+                if (build.security_status === 'passed') {
+                    securityStatusBadge = '<span class="badge badge-success">✓ Passed</span>';
+                } else if (build.security_status === 'critical') {
+                    securityStatusBadge = '<span class="badge" style="background: #dc3545; color: white;">🔴 Critical</span>';
+                } else if (build.security_status === 'high') {
+                    securityStatusBadge = '<span class="badge" style="background: #fd7e14; color: white;">🟠 High</span>';
+                } else if (build.security_status === 'medium') {
+                    securityStatusBadge = '<span class="badge" style="background: #ffc107; color: #000;">🟡 Medium</span>';
+                } else if (build.security_status === 'low') {
+                    securityStatusBadge = '<span class="badge" style="background: #17a2b8; color: white;">🔵 Low</span>';
+                } else {
+                    securityStatusBadge = '<span class="badge badge-danger">✗ Error</span>';
+                }
+                
+                const createdDate = new Date(build.created).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <tr>
+                        <td><strong>${build.name}</strong></td>
+                        <td><code>${build.tag}</code></td>
+                        <td>${build.base_os}</td>
+                        <td>${build.runtime}</td>
+                        <td>${buildStatusBadge}</td>
+                        <td>${securityStatusBadge}</td>
+                        <td style="text-align: center;"><button class="btn" onclick="showScanDetails('${build.name}:${build.tag}')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">🔍 Details</button></td>
+                        <td style="text-align: center;"><button class="btn" onclick="showDockerfileDetails('${build.name}:${build.tag}')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">📄 Details</button></td>
+                        <td style="color: #7f8c8d; font-size: 0.85rem; white-space: nowrap;">${createdDate}</td>
+                    </tr>
+                `;
+            }).join('');
+            
+            // Update total built images count
+            document.getElementById('totalBuiltImages').textContent = builds.length;
+        })
+        .catch(error => {
+            console.error('Error loading build history:', error);
+        });
+}
+
+// Load build history on page load
+loadBuildHistory();
+
+// Show security scan details modal
+function showScanDetails(imageTag) {
+    fetch(`/api/security-scan/${encodeURIComponent(imageTag)}`)
+        .then(response => response.json())
+        .then(scan => {
+            const modal = document.getElementById('scanModal');
+            const content = document.getElementById('scanModalContent');
+            
+            let statusBadge;
+            if (scan.status === 'passed') {
+                statusBadge = '<span class="badge badge-success">✓ Passed</span>';
+            } else if (scan.status === 'critical') {
+                statusBadge = '<span class="badge" style="background: #dc3545; color: white;">🔴 Critical</span>';
+            } else if (scan.status === 'high') {
+                statusBadge = '<span class="badge" style="background: #fd7e14; color: white;">🟠 High</span>';
+            } else if (scan.status === 'medium') {
+                statusBadge = '<span class="badge" style="background: #ffc107; color: #000;">🟡 Medium</span>';
+            } else if (scan.status === 'low') {
+                statusBadge = '<span class="badge" style="background: #17a2b8; color: white;">🔵 Low</span>';
+            } else {
+                statusBadge = '<span class="badge badge-danger">✗ Error</span>';
+            }
+            
+            // Build detailed vulnerabilities table
+            let detailedVulnsHTML = '';
+            if (scan.detailed_vulnerabilities && scan.detailed_vulnerabilities.length > 0) {
+                detailedVulnsHTML = `
+                    <h3 style="margin-bottom: 1rem; margin-top: 2rem;">Detailed Vulnerabilities</h3>
+                    <div style="max-height: 400px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 8px;">
+                        <table style="width: 100%; margin-bottom: 0;">
+                            <thead style="position: sticky; top: 0; background: #f8f9fa; z-index: 1;">
+                                <tr>
+                                    <th style="padding: 0.75rem;">CVE ID</th>
+                                    <th style="padding: 0.75rem;">Package</th>
+                                    <th style="padding: 0.75rem;">Installed</th>
+                                    <th style="padding: 0.75rem;">Fixed In</th>
+                                    <th style="padding: 0.75rem;">Severity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${scan.detailed_vulnerabilities.map(vuln => {
+                                    let severityBadge;
+                                    if (vuln.severity === 'CRITICAL') {
+                                        severityBadge = '<span class="badge" style="background: #dc3545; color: white;">🔴 CRITICAL</span>';
+                                    } else if (vuln.severity === 'HIGH') {
+                                        severityBadge = '<span class="badge" style="background: #fd7e14; color: white;">🟠 HIGH</span>';
+                                    } else if (vuln.severity === 'MEDIUM') {
+                                        severityBadge = '<span class="badge" style="background: #ffc107; color: #000;">🟡 MEDIUM</span>';
+                                    } else if (vuln.severity === 'LOW') {
+                                        severityBadge = '<span class="badge" style="background: #17a2b8; color: white;">🔵 LOW</span>';
+                                    } else {
+                                        severityBadge = '<span class="badge" style="background: #6c757d; color: white;">UNKNOWN</span>';
+                                    }
+                                    
+                                    return `
+                                        <tr style="border-bottom: 1px solid #dee2e6;">
+                                            <td style="padding: 0.75rem; font-size: 0.85rem;"><code>${vuln.vulnerability_id}</code></td>
+                                            <td style="padding: 0.75rem;"><strong>${vuln.package_name}</strong></td>
+                                            <td style="padding: 0.75rem; font-size: 0.85rem;">${vuln.installed_version}</td>
+                                            <td style="padding: 0.75rem; font-size: 0.85rem; color: ${vuln.fixed_version !== 'Not available' ? '#28a745' : '#dc3545'};">${vuln.fixed_version}</td>
+                                            <td style="padding: 0.75rem;">${severityBadge}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = `
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <p style="margin-bottom: 0.5rem;"><strong>Image:</strong> <code>${scan.image}</code></p>
+                    <p style="margin-bottom: 0.5rem;"><strong>Status:</strong> ${statusBadge}</p>
+                    <p style="margin-bottom: 0;"><strong>Scanned:</strong> ${new Date(scan.scanned_at).toLocaleString()}</p>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem;">Vulnerability Summary</h3>
+                <table style="width: 100%; margin-bottom: 1.5rem;">
+                    <thead>
+                        <tr>
+                            <th>Severity</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>🔴 Critical</td>
+                            <td style="text-align: center;"><strong>${scan.vulnerabilities.critical}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>🟠 High</td>
+                            <td style="text-align: center;"><strong>${scan.vulnerabilities.high}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>🟡 Medium</td>
+                            <td style="text-align: center;"><strong>${scan.vulnerabilities.medium}</strong></td>
+                        </tr>
+                        <tr>
+                            <td>🟢 Low</td>
+                            <td style="text-align: center;"><strong>${scan.vulnerabilities.low}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                ${detailedVulnsHTML}
+                
+                <p style="color: #7f8c8d; font-size: 0.9rem; margin: 1.5rem 0 1rem 0;">
+                    <strong>Scanner:</strong> ${scan.scanner}
+                </p>
+                
+                <div style="text-align: center;">
+                    <button onclick="closeScanModal()" class="btn btn-success">Close</button>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        })
+        .catch(error => {
+            console.error('Error loading scan details:', error);
+            alert('Error loading security scan details');
+        });
+}
+
+function closeScanModal() {
+    document.getElementById('scanModal').style.display = 'none';
+}
+
+// Show Dockerfile details modal
+function showDockerfileDetails(imageTag) {
+    fetch(`/api/dockerfile/${encodeURIComponent(imageTag)}`)
+        .then(response => response.json())
+        .then(data => {
+            const modal = document.getElementById('scanModal');
+            const content = document.getElementById('scanModalContent');
+            
+            content.innerHTML = `
+                <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <p style="margin-bottom: 0.5rem;"><strong>Image:</strong> <code>${imageTag}</code></p>
+                </div>
+                
+                <h3 style="margin-bottom: 1rem;">Dockerfile Content</h3>
+                <pre style="background: #2c3e50; color: #ecf0f1; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; max-height: 400px;">${data.dockerfile}</pre>
+                
+                <div style="text-align: center; margin-top: 1.5rem;">
+                    <button onclick="closeScanModal()" class="btn btn-success">Close</button>
+                </div>
+            `;
+            
+            modal.style.display = 'flex';
+        })
+        .catch(error => {
+            console.error('Error loading Dockerfile:', error);
+            alert('Error loading Dockerfile details');
+        });
+}
+
+// Close modal when clicking outside
+document.getElementById('scanModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeScanModal();
+    }
+});
+
+// Sync to Docker Hub function
+function syncToDockerHub() {
+    const confirmed = confirm('Are you sure you want to sync all successfully built and scanned images to the certified Docker Hub?');
+    
+    if (!confirmed) return;
+    
+    fetch('/api/sync-dockerhub', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(`✅ Sync completed!\n\n${data.message}\n\nImages synced: ${data.synced_count}`);
+        } else {
+            alert('❌ Sync failed!\n\n' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Sync error:', error);
+        alert('❌ Error syncing to Docker Hub: ' + error);
+    });
+}
+</script>
+{% endblock %}
+

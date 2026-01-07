@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+
+{% block title %}{{ image.name }}:{{ image.tag }} - ImageGuard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        color: #3b82f6;
+        text-decoration: none;
+        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+    }
+    
+    .back-link:hover {
+        color: #2563eb;
+    }
+    
+    .image-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .image-icon-large {
+        font-size: 3rem;
+    }
+    
+    .image-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+    
+    .image-description {
+        color: #64748b;
+        margin-top: 0.5rem;
+    }
+    
+    .section {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1e293b;
+        margin-bottom: 1rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        gap: 1rem;
+    }
+    
+    .info-row {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    
+    .info-label {
+        color: #64748b;
+        font-weight: 500;
+    }
+    
+    .info-value {
+        color: #1e293b;
+        font-family: 'Monaco', 'Courier New', monospace;
+        word-break: break-all;
+    }
+    
+    .tag-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        margin-right: 0.5rem;
+        color: white;
+    }
+    
+    .vulnerability-count {
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        padding: 1rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+    
+    .vuln-stat {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .vuln-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: #10b981;
+    }
+    
+    .vuln-label {
+        color: #64748b;
+        font-size: 0.875rem;
+    }
+    
+    .pull-command {
+        background: #1e293b;
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        font-family: 'Monaco', 'Courier New', monospace;
+        font-size: 0.9rem;
+        position: relative;
+        margin-top: 1rem;
+    }
+    
+    .copy-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.875rem;
+    }
+    
+    .copy-btn:hover {
+        background: #2563eb;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+    <a href="/" class="back-link">← Back</a>
+    
+    <div class="image-header">
+        <div class="image-icon-large">{{ image.icon }}</div>
+        <div>
+            <h1 class="image-title">{{ image.name }}:{{ image.tag }}</h1>
+            <p class="image-description">{{ image.description }}</p>
+            <div style="margin-top: 0.75rem;">
+                {% for tag in image.tags %}
+                <span class="tag-badge" style="background: {{ tag.color }}">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">Pull your image</div>
+        <div class="pull-command">
+            docker pull {{ image.registry }}/{{ image.name }}:{{ image.tag }}
+            <button class="copy-btn" onclick="copyPullCommand()">Copy</button>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">Overview</div>
+        <div class="info-grid">
+            <div class="info-row">
+                <div class="info-label">OS</div>
+                <div class="info-value">{{ image.os }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Architecture</div>
+                <div class="info-value">{{ image.architecture }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">ID</div>
+                <div class="info-value">{{ image.id }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Digest</div>
+                <div class="info-value">{{ image.digest }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Image size</div>
+                <div class="info-value">{{ image.size }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Runnable size</div>
+                <div class="info-value">{{ image.runnable_size }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Created</div>
+                <div class="info-value">{{ image.created }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section">
+        <div class="section-title">Vulnerabilities</div>
+        <div class="vulnerability-count">
+            <div class="vuln-stat">
+                <div class="vuln-number">{{ image.vulnerabilities.total }}</div>
+                <div class="vuln-label">Total</div>
+            </div>
+            <div class="vuln-stat">
+                <div class="vuln-number" style="color: #ef4444;">{{ image.vulnerabilities.critical }}</div>
+                <div class="vuln-label">Critical</div>
+            </div>
+            <div class="vuln-stat">
+                <div class="vuln-number" style="color: #f59e0b;">{{ image.vulnerabilities.high }}</div>
+                <div class="vuln-label">High</div>
+            </div>
+            <div class="vuln-stat">
+                <div class="vuln-number" style="color: #eab308;">{{ image.vulnerabilities.medium }}</div>
+                <div class="vuln-label">Medium</div>
+            </div>
+            <div class="vuln-stat">
+                <div class="vuln-number" style="color: #3b82f6;">{{ image.vulnerabilities.low }}</div>
+                <div class="vuln-label">Low</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function copyPullCommand() {
+    const command = 'docker pull {{ image.registry }}/{{ image.name }}:{{ image.tag }}';
+    navigator.clipboard.writeText(command).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => {
+            btn.textContent = 'Copy';
+        }, 2000);
+    });
+}
+</script>
+{% endblock %}

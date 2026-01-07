@@ -1,0 +1,54 @@
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.19.59.87:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 114-155-263
+127.0.0.1 - - [14/Dec/2025 16:44:53] "HEAD / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 16:45:50] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 16:56:47] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 16:56:53] "GET /images HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 16:57:06] "GET /build HTTP/1.1" 200 -
+/home/saneja/ImageGuard/web/app.py:226: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  LABEL imageguard.built="{datetime.utcnow().isoformat()}Z"
+ * Detected change in '/home/saneja/ImageGuard/web/app.py', reloading
+Building image: test_ub22_py311:latest
+Building image: test_ub22_py311:latest
+Building image: test_ub22_py311:latest
+Building image: test_ub22_py311:latest
+Building image: test_ub22_py311:latest
+Building image: test_ub22_py311:latest
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 114-155-263
+ * Serving Flask app 'app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://172.19.59.87:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 114-155-263
+127.0.0.1 - - [14/Dec/2025 16:59:30] "GET /build HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 16:59:55] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 17:00:22] "GET /build HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 17:00:32] "GET /build HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 17:00:33] "GET /build HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 17:00:49] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 17:01:21] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 17:01:27] "GET /build HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 17:20:16] "[35m[1mPOST /api/build HTTP/1.1[0m" 500 -
+127.0.0.1 - - [14/Dec/2025 17:20:17] "GET /build HTTP/1.1" 200 -
+ * Detected change in '/home/saneja/ImageGuard/web/app.py', reloading
+Building image: test_ub22_py311_v1:latest
+Build error: The command '/bin/sh -c apt-get update &&     apt-get install -y software-properties-common &&     add-apt-repository ppa:deadsnakes/ppa -y &&     apt-get update &&     apt-get install -y python3.11 python3.11-venv python3.11-dev &&     apt-get clean && rm -rf /var/lib/apt/lists/*' returned a non-zero code: 137
+Building image: test_ub22_py311_v1:latest
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 114-155-263

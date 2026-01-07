@@ -1,0 +1,23 @@
+# Mock Prometheus Node Exporter Component
+# Version: 1.7.0
+# Size: ~20MB
+# Description: Prometheus metrics exporter for system monitoring
+
+COMPONENT_NAME="prometheus-node-exporter"
+VERSION="1.7.0"
+INSTALL_PATH="/usr/local/bin/node_exporter"
+CONFIG_PATH="/etc/prometheus"
+SERVICE_NAME="node_exporter"
+
+# Installation commands (mock)
+# wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/node_exporter-1.7.0.linux-amd64.tar.gz
+# tar xvfz node_exporter-*.tar.gz
+# cp node_exporter-*/node_exporter /usr/local/bin/
+
+# Configuration:
+# - Exposes metrics on port 9100
+# - No authentication by default
+
+DEPENDENCIES="ca-certificates"
+PORTS="9100"
+METRICS_ENDPOINT="/metrics"

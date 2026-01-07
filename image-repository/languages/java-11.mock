@@ -1,0 +1,17 @@
+# Mock Java 11 (OpenJDK) Language Package
+# Version: 11.0.21
+# Size: ~180MB (JRE), ~320MB (JDK)
+# Description: Java Development Kit / Runtime Environment
+
+LANGUAGE="java"
+VERSION="11.0.21"
+JAVA_HOME="/usr/lib/jvm/java-11-openjdk"
+INSTALL_PATH="${JAVA_HOME}/bin/java"
+
+# Installation commands (mock)
+# Ubuntu/Debian: apt-get install -y openjdk-11-jdk
+# RedHat/CentOS: yum install -y java-11-openjdk-devel
+# Alpine: apk add --no-cache openjdk11
+
+INCLUDES="javac jar jvm"
+PACKAGE_MANAGER="maven/gradle"

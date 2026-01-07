@@ -1,0 +1,532 @@
+{% extends "base.html" %}
+
+{% block title %}About - ImageGuard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>📚 ImageGuard Documentation</h1>
+    <p>Complete guide to the ImageGuard container security platform</p>
+</div>
+
+<div style="max-width: 1200px; margin: 0 auto;">
+    <!-- Project Overview -->
+    <section style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 3px solid #3498db; padding-bottom: 0.5rem;">🎯 Project Overview</h2>
+        <p style="font-size: 1.05rem; line-height: 1.7; color: #34495e;">
+            <strong>ImageGuard</strong> is a comprehensive container image security and management platform that enables organizations to build, 
+            scan, and certify Docker container images. It provides a complete workflow from base OS images through security scanning 
+            to certified image deployment in production registries.
+        </p>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+            <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #3498db;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #2c3e50;">🔒 Security First</h4>
+                <p style="margin: 0; color: #7f8c8d; font-size: 0.95rem;">Real-time vulnerability scanning with Trivy integration</p>
+            </div>
+            <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #2ecc71;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #2c3e50;">🏗️ Image Builder</h4>
+                <p style="margin: 0; color: #7f8c8d; font-size: 0.95rem;">Automated Dockerfile generation and image building</p>
+            </div>
+            <div style="background: #ecf0f1; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #e74c3c;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #2c3e50;">📦 Registry Management</h4>
+                <p style="margin: 0; color: #7f8c8d; font-size: 0.95rem;">Multi-registry support with base and certified hubs</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 3px solid #3498db; padding-bottom: 0.5rem;">🏛️ Architecture</h2>
+        
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h3 style="margin-top: 0;">Registry Infrastructure</h3>
+            <ul style="line-height: 2; color: #34495e;">
+                <li><strong>Base OS Registry (localhost:5050)</strong> - Stores foundation OS images (Alpine, Ubuntu, RedHat UBI)</li>
+                <li><strong>Certified Registry (localhost:5051)</strong> - Stores security-scanned and approved images</li>
+                <li><strong>Docker Engine</strong> - Local Docker daemon for image building and management</li>
+            </ul>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="margin-top: 0;">Technology Stack</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <p style="margin: 0.5rem 0;"><strong>Backend:</strong> Flask (Python 3.x)</p>
+                    <p style="margin: 0.5rem 0;"><strong>Security Scanner:</strong> Trivy v0.68.2</p>
+                    <p style="margin: 0.5rem 0;"><strong>Containerization:</strong> Docker Engine</p>
+                </div>
+                <div>
+                    <p style="margin: 0.5rem 0;"><strong>Frontend:</strong> HTML5, CSS3, JavaScript</p>
+                    <p style="margin: 0.5rem 0;"><strong>Registries:</strong> Docker Registry 2.0</p>
+                    <p style="margin: 0.5rem 0;"><strong>API:</strong> RESTful JSON endpoints</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Architecture Diagram -->
+    <section style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 3px solid #3498db; padding-bottom: 0.5rem;">📊 System Architecture Diagram</h2>
+        
+        <!-- Main Architecture Diagram -->
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
+            <h3 style="color: white; text-align: center; margin-bottom: 2rem;">ImageGuard Platform Architecture</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- User Interface Layer -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    <h4 style="color: #3498db; text-align: center; margin: 0 0 1rem 0; border-bottom: 2px solid #3498db; padding-bottom: 0.5rem;">👤 User Interface</h4>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Dashboard</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Build Page</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Custom Page</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; font-size: 0.9rem;">About</div>
+                </div>
+                
+                <!-- Application Layer -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    <h4 style="color: #2ecc71; text-align: center; margin: 0 0 1rem 0; border-bottom: 2px solid #2ecc71; padding-bottom: 0.5rem;">⚙️ Application Layer</h4>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Flask Backend</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">REST API</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Docker SDK</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; font-size: 0.9rem;">Trivy Scanner</div>
+                </div>
+                
+                <!-- Infrastructure Layer -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    <h4 style="color: #e74c3c; text-align: center; margin: 0 0 1rem 0; border-bottom: 2px solid #e74c3c; padding-bottom: 0.5rem;">🏗️ Infrastructure</h4>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Base Registry :5050</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Certified Registry :5051</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; margin-bottom: 0.5rem; font-size: 0.9rem;">Docker Engine</div>
+                    <div style="text-align: center; padding: 0.5rem; background: #ecf0f1; border-radius: 4px; font-size: 0.9rem;">Image Storage</div>
+                </div>
+            </div>
+            
+            <!-- Connection Arrows (visual representation) -->
+            <div style="text-align: center; color: white; font-size: 0.9rem; margin-top: 1rem;">
+                <p style="margin: 0;">↕️ RESTful API Communication ↕️ Docker SDK Integration ↕️ Registry Protocol</p>
+            </div>
+        </div>
+        
+        <!-- Build & Scan Workflow Diagram -->
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 12px; border: 2px solid #3498db;">
+            <h3 style="color: #2c3e50; text-align: center; margin-bottom: 2rem;">🔄 Build & Scan Workflow</h3>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <!-- Step 1 -->
+                <div style="flex: 1; min-width: 150px; text-align: center;">
+                    <div style="background: #3498db; color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📝</div>
+                        <strong>User Input</strong>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.9;">Select Base OS,<br>Runtime, Components</div>
+                    </div>
+                </div>
+                
+                <div style="font-size: 2rem; color: #3498db;">→</div>
+                
+                <!-- Step 2 -->
+                <div style="flex: 1; min-width: 150px; text-align: center;">
+                    <div style="background: #2ecc71; color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔨</div>
+                        <strong>Generate</strong>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.9;">Auto-generate<br>Dockerfile</div>
+                    </div>
+                </div>
+                
+                <div style="font-size: 2rem; color: #2ecc71;">→</div>
+                
+                <!-- Step 3 -->
+                <div style="flex: 1; min-width: 150px; text-align: center;">
+                    <div style="background: #f39c12; color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏗️</div>
+                        <strong>Build Image</strong>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.9;">Docker builds<br>container image</div>
+                    </div>
+                </div>
+                
+                <div style="font-size: 2rem; color: #f39c12;">→</div>
+                
+                <!-- Step 4 -->
+                <div style="flex: 1; min-width: 150px; text-align: center;">
+                    <div style="background: #e74c3c; color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+                        <strong>Trivy Scan</strong>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.9;">Security<br>vulnerability scan</div>
+                    </div>
+                </div>
+                
+                <div style="font-size: 2rem; color: #e74c3c;">→</div>
+                
+                <!-- Step 5 -->
+                <div style="flex: 1; min-width: 150px; text-align: center;">
+                    <div style="background: #9b59b6; color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                        <strong>Results</strong>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.9;">Display CVE report<br>& severity</div>
+                    </div>
+                </div>
+                
+                <div style="font-size: 2rem; color: #9b59b6;">→</div>
+                
+                <!-- Step 6 -->
+                <div style="flex: 1; min-width: 150px; text-align: center;">
+                    <div style="background: #16a085; color: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); margin-bottom: 0.5rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚀</div>
+                        <strong>Sync to Registry</strong>
+                        <div style="font-size: 0.8rem; margin-top: 0.5rem; opacity: 0.9;">Push to Certified<br>Docker Hub :5051</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; padding: 1rem; background: white; border-radius: 8px; border-left: 4px solid #3498db;">
+                <p style="margin: 0; color: #7f8c8d; text-align: center; font-size: 0.95rem;">
+                    <strong>⏱️ Average Time:</strong> Dockerfile generation (< 1s) + Docker build (30-120s) + Trivy scan (10-60s) + Registry push (5-30s)
+                </p>
+            </div>
+        </div>
+        
+        <!-- Registry Flow Diagram -->
+        <div style="background: #f8f9fa; padding: 2rem; border-radius: 12px; border: 2px solid #2ecc71; margin-top: 2rem;">
+            <h3 style="color: #2c3e50; text-align: center; margin-bottom: 2rem;">📦 Registry Management Flow</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 1rem; align-items: center;">
+                <!-- Base Registry -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border: 2px solid #3498db;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">🗄️</div>
+                    <strong style="color: #3498db;">Base OS Registry</strong>
+                    <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.5rem;">localhost:5050</div>
+                    <div style="font-size: 0.8rem; color: #95a5a6; margin-top: 0.25rem;">Alpine, Ubuntu, RedHat</div>
+                </div>
+                
+                <div style="font-size: 2rem; color: #3498db;">→</div>
+                
+                <!-- Build Process -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border: 2px solid #2ecc71;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚙️</div>
+                    <strong style="color: #2ecc71;">ImageGuard</strong>
+                    <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.5rem;">Build + Scan</div>
+                    <div style="font-size: 0.8rem; color: #95a5a6; margin-top: 0.25rem;">Add Runtime + Components</div>
+                </div>
+                
+                <div style="font-size: 2rem; color: #2ecc71;">→</div>
+                
+                <!-- Certified Registry -->
+                <div style="background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; border: 2px solid #e74c3c;">
+                    <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+                    <strong style="color: #e74c3c;">Certified Registry</strong>
+                    <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.5rem;">localhost:5051</div>
+                    <div style="font-size: 0.8rem; color: #95a5a6; margin-top: 0.25rem;">Security-scanned images</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div style="padding: 1rem; background: #d4edda; border-radius: 8px; border-left: 4px solid #28a745;">
+                    <strong style="color: #155724;">✓ Base Registry Purpose:</strong>
+                    <p style="margin: 0.5rem 0 0 0; color: #155724; font-size: 0.9rem;">Foundation OS images, vendor images (Nessus), starting point for builds</p>
+                </div>
+                <div style="padding: 1rem; background: #f8d7da; border-radius: 8px; border-left: 4px solid #dc3545;">
+                    <strong style="color: #721c24;">✓ Certified Registry Purpose:</strong>
+                    <p style="margin: 0.5rem 0 0 0; color: #721c24; font-size: 0.9rem;">Production-ready images with security scanning, ready for deployment</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pages Overview -->
+    <section style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 3px solid #3498db; padding-bottom: 0.5rem;">📄 Pages & Features</h2>
+        
+        <!-- Dashboard -->
+        <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #ecf0f1;">
+            <h3 style="color: #3498db; margin-bottom: 1rem;">
+                <span style="background: #3498db; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem; margin-right: 0.5rem;">HOME</span>
+                Dashboard
+            </h3>
+            <p style="color: #7f8c8d; margin-bottom: 1rem;">The main landing page displaying certified, production-ready container images from the certified registry (localhost:5051).</p>
+            
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                <h4 style="margin-top: 0;">Features:</h4>
+                <ul style="line-height: 2; color: #34495e;">
+                    <li><strong>Image Cards</strong> - Visual display of security-scanned, certified images with tags and metadata</li>
+                    <li><strong>Smart Tags</strong> - Auto-detection of image types (Ubuntu, Alpine, RedHat, Nessus, Oracle, etc.)</li>
+                    <li><strong>Color-coded Badges</strong> - Instant visual identification of OS platforms</li>
+                    <li><strong>Pull Commands</strong> - One-click copy of docker pull commands</li>
+                    <li><strong>Tag Listing</strong> - View all available versions/tags for each image</li>
+                    <li><strong>Search & Filter</strong> - Quickly find images by name or type</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Build Page -->
+        <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #ecf0f1;">
+            <h3 style="color: #2ecc71; margin-bottom: 1rem;">
+                <span style="background: #2ecc71; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem; margin-right: 0.5rem;">BUILD</span>
+                Image Builder
+            </h3>
+            <p style="color: #7f8c8d; margin-bottom: 1rem;">Interactive image building interface with automated Dockerfile generation and security scanning.</p>
+            
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                <h4 style="margin-top: 0;">Build Configuration:</h4>
+                <ul style="line-height: 2; color: #34495e;">
+                    <li><strong>Base OS Selection</strong> - Choose from Alpine, Ubuntu, RedHat UBI, or vendor images (Nessus, etc.)</li>
+                    <li><strong>Runtime Selection (Optional)</strong> - Add Python, Java, or Node.js runtimes</li>
+                    <li><strong>Component Selection</strong> - Add monitoring agents (Prometheus, Puppet)</li>
+                    <li><strong>Custom Naming</strong> - Define image name and tag for easy identification</li>
+                </ul>
+            </div>
+
+            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 1rem;">
+                <strong>🔥 Build Process Flow:</strong>
+                <ol style="margin: 0.5rem 0 0 1.5rem; color: #856404;">
+                    <li>Generate Dockerfile with selected components</li>
+                    <li>Build Docker image using local Docker daemon</li>
+                    <li>Run Trivy security scan automatically</li>
+                    <li>Save scan results as image labels</li>
+                    <li>Display results in Build History table</li>
+                </ol>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                <h4 style="margin-top: 0;">Build History Table:</h4>
+                <ul style="line-height: 2; color: #34495e;">
+                    <li><strong>Image Details</strong> - Name, tag, base OS, runtime</li>
+                    <li><strong>Build Status</strong> - Success or failure indicator</li>
+                    <li><strong>Security Status</strong> - Color-coded severity badges (Critical, High, Medium, Low, Passed)</li>
+                    <li><strong>Security Scan Details</strong> - Click to view detailed CVE report</li>
+                    <li><strong>Dockerfile View</strong> - Review generated Dockerfile</li>
+                    <li><strong>Timestamp</strong> - Build creation date and time</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Custom Build -->
+        <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #ecf0f1;">
+            <h3 style="color: #e67e22; margin-bottom: 1rem;">
+                <span style="background: #e67e22; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem; margin-right: 0.5rem;">CUSTOM</span>
+                Custom Image Build
+            </h3>
+            <p style="color: #7f8c8d; margin-bottom: 1rem;">Advanced interface for downloading external images and building custom configurations.</p>
+            
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                <h4 style="margin-top: 0;">Features:</h4>
+                <ul style="line-height: 2; color: #34495e;">
+                    <li><strong>Docker Hub Download</strong> - Pull images directly from Docker Hub</li>
+                    <li><strong>Batch Processing</strong> - Download multiple images simultaneously</li>
+                    <li><strong>Progress Tracking</strong> - Real-time download status updates</li>
+                    <li><strong>Custom Configurations</strong> - Advanced build options for power users</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Security Page -->
+        <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid #ecf0f1;">
+            <h3 style="color: #e74c3c; margin-bottom: 1rem;">
+                <span style="background: #e74c3c; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem; margin-right: 0.5rem;">SECURITY</span>
+                Security Scanning
+            </h3>
+            <p style="color: #7f8c8d; margin-bottom: 1rem;">Comprehensive vulnerability scanning and reporting using Trivy security scanner.</p>
+            
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                <h4 style="margin-top: 0;">Scan Capabilities:</h4>
+                <ul style="line-height: 2; color: #34495e;">
+                    <li><strong>OS Package Scanning</strong> - Detects vulnerabilities in base OS packages</li>
+                    <li><strong>Application Dependency Scanning</strong> - Scans language-specific dependencies</li>
+                    <li><strong>CVE Database</strong> - Up-to-date vulnerability information from multiple sources</li>
+                    <li><strong>Severity Classification</strong> - CRITICAL, HIGH, MEDIUM, LOW ratings</li>
+                </ul>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+                <h4 style="margin-top: 0;">Scan Report Details:</h4>
+                <ul style="line-height: 2; color: #34495e;">
+                    <li><strong>Vulnerability Summary</strong> - Count by severity level</li>
+                    <li><strong>CVE Identifiers</strong> - Specific vulnerability IDs</li>
+                    <li><strong>Affected Packages</strong> - Package name and installed version</li>
+                    <li><strong>Fix Availability</strong> - Shows which version fixes the vulnerability</li>
+                    <li><strong>Scrollable Table</strong> - Easy navigation through large vulnerability lists</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- About Page -->
+        <div style="margin-bottom: 2rem;">
+            <h3 style="color: #9b59b6; margin-bottom: 1rem;">
+                <span style="background: #9b59b6; color: white; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.9rem; margin-right: 0.5rem;">ABOUT</span>
+                Documentation (This Page)
+            </h3>
+            <p style="color: #7f8c8d; margin-bottom: 1rem;">Complete project documentation, architecture overview, and feature descriptions.</p>
+        </div>
+    </section>
+
+    <!-- Workflow -->
+    <section style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 3px solid #3498db; padding-bottom: 0.5rem;">🔄 Complete Workflow</h2>
+        
+        <div style="position: relative; padding-left: 2rem;">
+            <!-- Step 1 -->
+            <div style="position: relative; padding-bottom: 2rem; border-left: 3px solid #3498db;">
+                <div style="position: absolute; left: -1.15rem; top: 0; width: 2rem; height: 2rem; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1</div>
+                <div style="margin-left: 2rem;">
+                    <h4 style="color: #3498db; margin: 0 0 0.5rem 0;">Base Image Preparation</h4>
+                    <p style="color: #7f8c8d; margin: 0;">Download and store base OS images in localhost:5050 registry</p>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div style="position: relative; padding-bottom: 2rem; border-left: 3px solid #3498db;">
+                <div style="position: absolute; left: -1.15rem; top: 0; width: 2rem; height: 2rem; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2</div>
+                <div style="margin-left: 2rem;">
+                    <h4 style="color: #3498db; margin: 0 0 0.5rem 0;">Image Configuration</h4>
+                    <p style="color: #7f8c8d; margin: 0;">Select base OS, runtime, and components through Build page</p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div style="position: relative; padding-bottom: 2rem; border-left: 3px solid #3498db;">
+                <div style="position: absolute; left: -1.15rem; top: 0; width: 2rem; height: 2rem; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">3</div>
+                <div style="margin-left: 2rem;">
+                    <h4 style="color: #3498db; margin: 0 0 0.5rem 0;">Automated Build</h4>
+                    <p style="color: #7f8c8d; margin: 0;">System generates Dockerfile and builds image with Docker</p>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div style="position: relative; padding-bottom: 2rem; border-left: 3px solid #3498db;">
+                <div style="position: absolute; left: -1.15rem; top: 0; width: 2rem; height: 2rem; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">4</div>
+                <div style="margin-left: 2rem;">
+                    <h4 style="color: #3498db; margin: 0 0 0.5rem 0;">Security Scanning</h4>
+                    <p style="color: #7f8c8d; margin: 0;">Trivy automatically scans the built image for vulnerabilities</p>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div style="position: relative; padding-bottom: 2rem; border-left: 3px solid #3498db;">
+                <div style="position: absolute; left: -1.15rem; top: 0; width: 2rem; height: 2rem; background: #3498db; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">5</div>
+                <div style="margin-left: 2rem;">
+                    <h4 style="color: #3498db; margin: 0 0 0.5rem 0;">Results & Metadata</h4>
+                    <p style="color: #7f8c8d; margin: 0;">Scan results saved as image labels, displayed in Build History</p>
+                </div>
+            </div>
+
+            <!-- Step 6 -->
+            <div style="position: relative;">
+                <div style="position: absolute; left: -1.15rem; top: 0; width: 2rem; height: 2rem; background: #2ecc71; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">6</div>
+                <div style="margin-left: 2rem;">
+                    <h4 style="color: #2ecc71; margin: 0 0 0.5rem 0;">Certification & Deployment</h4>
+                    <p style="color: #7f8c8d; margin: 0;">Approved images pushed to certified registry (localhost:5051)</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features -->
+    <section style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 3px solid #3498db; padding-bottom: 0.5rem;">✨ Key Features</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <div style="border: 2px solid #3498db; border-radius: 8px; padding: 1.5rem;">
+                <h4 style="color: #3498db; margin-top: 0;">🎨 Smart UI</h4>
+                <ul style="color: #7f8c8d; line-height: 1.8;">
+                    <li>Responsive design</li>
+                    <li>Real-time updates</li>
+                    <li>Color-coded status indicators</li>
+                    <li>Modal dialogs for detailed views</li>
+                </ul>
+            </div>
+
+            <div style="border: 2px solid #2ecc71; border-radius: 8px; padding: 1.5rem;">
+                <h4 style="color: #2ecc71; margin-top: 0;">🔒 Security Integration</h4>
+                <ul style="color: #7f8c8d; line-height: 1.8;">
+                    <li>Trivy vulnerability scanner</li>
+                    <li>Automatic CVE detection</li>
+                    <li>Severity-based classification</li>
+                    <li>Fix version recommendations</li>
+                </ul>
+            </div>
+
+            <div style="border: 2px solid #e74c3c; border-radius: 8px; padding: 1.5rem;">
+                <h4 style="color: #e74c3c; margin-top: 0;">⚡ Automation</h4>
+                <ul style="color: #7f8c8d; line-height: 1.8;">
+                    <li>Dockerfile auto-generation</li>
+                    <li>Post-build scanning</li>
+                    <li>Metadata persistence</li>
+                    <li>Registry synchronization</li>
+                </ul>
+            </div>
+
+            <div style="border: 2px solid #f39c12; border-radius: 8px; padding: 1.5rem;">
+                <h4 style="color: #f39c12; margin-top: 0;">📊 Reporting</h4>
+                <ul style="color: #7f8c8d; line-height: 1.8;">
+                    <li>Detailed vulnerability tables</li>
+                    <li>Build history tracking</li>
+                    <li>Package-level analysis</li>
+                    <li>Exportable scan data</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Endpoints -->
+    <section style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+        <h2 style="color: #2c3e50; margin-bottom: 1rem; border-bottom: 3px solid #3498db; padding-bottom: 0.5rem;">🔌 API Endpoints</h2>
+        
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; font-family: monospace; margin-bottom: 1rem;">
+            <p style="margin: 0.5rem 0;"><strong>GET</strong> /api/images - List all images from registries</p>
+            <p style="margin: 0.5rem 0;"><strong>GET</strong> /api/build-history - Get build history with metadata</p>
+            <p style="margin: 0.5rem 0;"><strong>POST</strong> /api/build - Trigger new image build</p>
+            <p style="margin: 0.5rem 0;"><strong>GET</strong> /api/security-scan/&lt;image&gt; - Get scan details</p>
+            <p style="margin: 0.5rem 0;"><strong>GET</strong> /api/dockerfile/&lt;image&gt; - Retrieve Dockerfile</p>
+            <p style="margin: 0.5rem 0;"><strong>POST</strong> /api/download-images - Download from Docker Hub</p>
+            <p style="margin: 0.5rem 0;"><strong>POST</strong> /api/push-certified - Push to certified registry</p>
+        </div>
+    </section>
+
+    <!-- Future Enhancements -->
+    <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); color: white;">
+        <h2 style="color: white; margin-bottom: 1rem; border-bottom: 3px solid rgba(255,255,255,0.3); padding-bottom: 0.5rem;">🚀 Future Enhancements</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; backdrop-filter: blur(10px);">
+                <p style="margin: 0;">✓ SBOM (Software Bill of Materials) generation</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; backdrop-filter: blur(10px);">
+                <p style="margin: 0;">✓ Policy-based approval workflows</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; backdrop-filter: blur(10px);">
+                <p style="margin: 0;">✓ Integration with CI/CD pipelines</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; backdrop-filter: blur(10px);">
+                <p style="margin: 0;">✓ Image signing and verification</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; backdrop-filter: blur(10px);">
+                <p style="margin: 0;">✓ Compliance reporting (PCI, HIPAA)</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; backdrop-filter: blur(10px);">
+                <p style="margin: 0;">✓ Multi-cloud registry support</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 3rem 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .page-header h1 {
+        margin: 0 0 0.5rem 0;
+        font-size: 2.5rem;
+    }
+    
+    .page-header p {
+        margin: 0;
+        font-size: 1.2rem;
+        opacity: 0.9;
+    }
+</style>
+{% endblock %}
