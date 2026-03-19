@@ -176,7 +176,7 @@
 
 .images-header {
     display: grid;
-    grid-template-columns: minmax(180px, 250px) 100px 120px 180px 180px;
+    grid-template-columns: 50px minmax(180px, 250px) 100px 120px 180px 180px;
     padding: 1rem 1.5rem;
     background: #f8fafc;
     border-bottom: 2px solid #e2e8f0;
@@ -187,7 +187,7 @@
 
 .image-item {
     display: grid;
-    grid-template-columns: minmax(180px, 250px) 100px 120px 180px 180px;
+    grid-template-columns: 50px minmax(180px, 250px) 100px 120px 180px 180px;
     align-items: center;
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid #e2e8f0;
@@ -606,6 +606,7 @@ function displayResults(images, displayName) {
                     <div class="os-group-content">
                         <div class="images-list">
                             <div class="images-header">
+                                <div><input type="checkbox" id="selectAll-${osClass}" onchange="toggleSelectAll('${osClass}')" style="cursor: pointer;"></div>
                                 <div>Image</div>
                                 <div>OS</div>
                                 <div>Date</div>
@@ -616,6 +617,7 @@ function displayResults(images, displayName) {
                                 const imgOsClass = img.os.toLowerCase().replace(' ', '');
                                 return `
                                 <div class="image-item">
+                                    <div><input type="checkbox" class="image-checkbox ${osClass}-checkbox" data-name="${img.name}" data-tag="${img.tag || 'latest'}" style="cursor: pointer;"></div>
                                     <div class="image-info">
                                         <div class="image-name">${img.name}</div>
                                     </div>
@@ -661,25 +663,39 @@ function pullImage(name, tag) {
     }
 }
 
+function toggleSelectAll(osClass) {
+    const selectAllCheckbox = document.getElementById(`selectAll-${osClass}`);
+    const checkboxes = document.querySelectorAll(`.${osClass}-checkbox`);
+    checkboxes.forEach(cb => {
+        cb.checked = selectAllCheckbox.checked;
+    });
+}
+
 async function downloadAllImages() {
     const button = event.target;
+    
+    // Get all checked images
+    const imagesToDownload = [];
+    document.querySelectorAll('.image-checkbox:checked').forEach(checkbox => {
+        imagesToDownload.push({
+            name: checkbox.dataset.name,
+            tag: checkbox.dataset.tag
+        });
+    });
+    
+    if (imagesToDownload.length === 0) {
+        alert('⚠️ Please select at least one image to download.');
+        return;
+    }
+    
+    if (!confirm(`Download ${imagesToDownload.length} selected image(s)?`)) {
+        return;
+    }
+    
     button.disabled = true;
     button.textContent = '⏳ Downloading...';
     
     try {
-        // Get all images from the grouped display
-        const imagesToDownload = [];
-        document.querySelectorAll('.image-item').forEach(item => {
-            const nameEl = item.querySelector('.image-name');
-            const tagEl = item.querySelector('.tag-badge');
-            if (nameEl && tagEl) {
-                imagesToDownload.push({
-                    name: nameEl.textContent,
-                    tag: tagEl.textContent
-                });
-            }
-        });
-        
         const response = await fetch('/api/download-vendor-images', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -690,6 +706,9 @@ async function downloadAllImages() {
         
         if (result.status === 'success') {
             alert(`✅ Successfully downloaded ${result.downloaded} image(s)!\n\n${result.message}`);
+            // Uncheck all checkboxes after successful download
+            document.querySelectorAll('.image-checkbox:checked').forEach(cb => cb.checked = false);
+            document.querySelectorAll('[id^="selectAll-"]').forEach(cb => cb.checked = false);
         } else {
             alert(`❌ Error: ${result.message}`);
         }

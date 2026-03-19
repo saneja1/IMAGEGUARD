@@ -203,19 +203,19 @@
 {% block content %}
 <div class="container" style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
     <div class="dashboard-header">
-        <h2>Certified Images</h2>
+        <h2>Certified Registry Images</h2>
         <p>Production-ready, security-scanned container images</p>
     </div>
     
     <div class="search-bar">
         <span class="search-icon">🔍</span>
-        <input type="text" id="searchInput" placeholder="Search certified images..." onkeyup="filterImages()">
+        <input type="text" id="searchInput" placeholder="Search certified registry images..." onkeyup="filterImages()">
     </div>
     
     <div id="imagesGrid" class="images-grid">
         <div class="loading">
             <div style="font-size: 2rem;">⏳</div>
-            <p>Loading certified images...</p>
+            <p>Loading certified registry images...</p>
         </div>
     </div>
 </div>
@@ -234,7 +234,7 @@ async function loadCertifiedImages() {
             <div class="no-images">
                 <div class="no-images-icon">❌</div>
                 <h3>Error loading images</h3>
-                <p>Could not fetch certified images from registry</p>
+                <p>Could not fetch certified registry images from registry</p>
             </div>
         `;
     }
@@ -247,7 +247,7 @@ function displayImages(images) {
         grid.innerHTML = `
             <div class="no-images">
                 <div class="no-images-icon">📦</div>
-                <h3>No certified images yet</h3>
+                <h3>No certified registry images yet</h3>
                 <p>Build and sync images to see them here</p>
             </div>
         `;
@@ -397,5 +397,6 @@ function viewImageDetails(imageName) {
 
 // Load images on page load
 document.addEventListener('DOMContentLoaded', loadCertifiedImages);
+
 </script>
 {% endblock %}

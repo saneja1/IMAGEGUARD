@@ -50,7 +50,8 @@ def images():
     """Image catalog page"""
     image_list = get_all_images()
     stats = get_dashboard_stats()
-    return render_template('images.html', images=image_list, stats=stats)
+    base_images = get_base_images()
+    return render_template('images.html', images=image_list, stats=stats, base_images=base_images)
 
 
 @app.route('/build')
@@ -241,7 +242,7 @@ def get_certified_images():
         
         return jsonify(images)
     except Exception as e:
-        print(f"Error fetching certified images: {e}")
+        print(f"Error fetching certified registry images: {e}")
         return jsonify([])
 
 
@@ -272,6 +273,7 @@ def get_certified_images_grouped():
     except Exception as e:
         print(f"Error fetching grouped images: {e}")
         return jsonify([])
+
 
 
 @app.route('/api/fetch-vendor-images', methods=['POST'])
@@ -1077,7 +1079,7 @@ RUN microdnf install -y python3 python3-pip && microdnf clean all
                 dockerfile += f"""# Python runtime installation
 RUN apt-get update && \\
     apt-get install -y python3 python3-pip python3-venv && \\
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
         elif runtime_type == 'java':
@@ -1095,7 +1097,8 @@ RUN microdnf install -y java-{version}-openjdk java-{version}-openjdk-devel && m
 """
             else:
                 dockerfile += f"""# Java runtime installation
-RUN apt-get update && apt-get install -y openjdk-{version}-jdk && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y openjdk-{version}-jdk && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
         elif runtime_type == 'node':
@@ -1112,7 +1115,9 @@ RUN microdnf install -y nodejs npm && microdnf clean all
 """
             else:
                 dockerfile += f"""# Node.js runtime installation
-RUN curl -fsSL https://deb.nodesource.com/setup_{version}.x | bash - && apt-get install -y nodejs && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSL https://deb.nodesource.com/setup_{version}.x | bash - && \\
+    apt-get install -y nodejs && apt-get autoremove -y && \\
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
         elif runtime_type == 'go':
@@ -1146,19 +1151,25 @@ RUN wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/no
         
         if 'puppet' in components:
             dockerfile += """# Puppet Agent
-RUN wget https://apt.puppet.com/puppet7-release-focal.deb && dpkg -i puppet7-release-focal.deb && apt-get update && apt-get install -y puppet-agent && rm puppet7-release-focal.deb
+RUN wget https://apt.puppet.com/puppet7-release-focal.deb && dpkg -i puppet7-release-focal.deb && \\
+    apt-get update && apt-get install -y puppet-agent && rm puppet7-release-focal.deb && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
         
         if 'vault' in components:
             dockerfile += """# HashiCorp Vault Client
-RUN wget https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip && apt-get update && apt-get install -y unzip && unzip vault_1.15.0_linux_amd64.zip && mv vault /usr/local/bin/ && rm vault_1.15.0_linux_amd64.zip
+RUN wget https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip && \\
+    apt-get update && apt-get install -y unzip && unzip vault_1.15.0_linux_amd64.zip && \\
+    mv vault /usr/local/bin/ && rm vault_1.15.0_linux_amd64.zip && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
         
         if 'logging' in components:
             dockerfile += """# Custom Logging Agent
-RUN apt-get update && apt-get install -y rsyslog && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y rsyslog && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
 
@@ -1204,18 +1215,19 @@ ENV TZ=UTC
 """
 
     if is_alpine:
-        dockerfile += """# Update package manager and install prerequisites (Alpine)
-RUN apk update && apk add --no-cache wget curl ca-certificates
+        dockerfile += """# Update package manager, upgrade packages, and install prerequisites (Alpine)
+RUN apk update && apk upgrade && apk add --no-cache wget curl ca-certificates
 
 """
     elif is_redhat:
-        dockerfile += """# Update package manager and install prerequisites (RedHat UBI)
-RUN microdnf update -y && microdnf install -y wget tar gzip && microdnf clean all
+        dockerfile += """# Update package manager, upgrade packages, and install prerequisites (RedHat UBI)
+RUN microdnf update -y && microdnf upgrade -y && microdnf install -y wget tar gzip && microdnf clean all
 
 """
     else:
-        dockerfile += """# Update package manager and install prerequisites
-RUN apt-get update && apt-get install -y wget curl ca-certificates && apt-get clean && rm -rf /var/lib/apt/lists/*
+        dockerfile += """# Update package manager, upgrade packages, and install prerequisites
+RUN apt-get update && apt-get upgrade -y && apt-get install -y wget curl ca-certificates && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
 
@@ -1232,7 +1244,9 @@ RUN wget https://github.com/prometheus/node_exporter/releases/download/v1.7.0/no
         if 'puppet' in components:
             if not is_alpine:
                 dockerfile += """# Puppet Agent
-RUN wget https://apt.puppet.com/puppet7-release-focal.deb && dpkg -i puppet7-release-focal.deb && apt-get update && apt-get install -y puppet-agent && rm puppet7-release-focal.deb
+RUN wget https://apt.puppet.com/puppet7-release-focal.deb && dpkg -i puppet7-release-focal.deb && \\
+    apt-get update && apt-get install -y puppet-agent && rm puppet7-release-focal.deb && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
         
@@ -1244,7 +1258,10 @@ RUN wget https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zi
 """
             else:
                 dockerfile += """# HashiCorp Vault Client
-RUN wget https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip && apt-get update && apt-get install -y unzip && unzip vault_1.15.0_linux_amd64.zip && mv vault /usr/local/bin/ && rm vault_1.15.0_linux_amd64.zip
+RUN wget https://releases.hashicorp.com/vault/1.15.0/vault_1.15.0_linux_amd64.zip && \\
+    apt-get update && apt-get install -y unzip && unzip vault_1.15.0_linux_amd64.zip && \\
+    mv vault /usr/local/bin/ && rm vault_1.15.0_linux_amd64.zip && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
         
@@ -1256,7 +1273,8 @@ RUN apk add --no-cache rsyslog
 """
             else:
                 dockerfile += """# Custom Logging Agent
-RUN apt-get update && apt-get install -y rsyslog && apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y rsyslog && \\
+    apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 """
 

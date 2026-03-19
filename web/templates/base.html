@@ -279,9 +279,9 @@
         <h1><span>🛡️</span> ImageGuard</h1>
         <ul class="nav-links">
             <li><a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="active"{% endif %}>Dashboard</a></li>
-            <li><a href="{{ url_for('images') }}" {% if request.endpoint == 'images' %}class="active"{% endif %}>Images</a></li>
             <li><a href="{{ url_for('build') }}" {% if request.endpoint == 'build' %}class="active"{% endif %}>Build</a></li>
             <li><a href="{{ url_for('custom') }}" {% if request.endpoint == 'custom' %}class="active"{% endif %}>Custom</a></li>
+            <li><a href="{{ url_for('images') }}" {% if request.endpoint == 'images' %}class="active"{% endif %}>Base Images</a></li>
             <li><a href="{{ url_for('about') }}" {% if request.endpoint == 'about' %}class="active"{% endif %}>About</a></li>
         </ul>
     </nav>

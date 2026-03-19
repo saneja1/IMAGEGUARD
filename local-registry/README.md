@@ -4,7 +4,7 @@ This is your local Docker registry for storing pre-built container images.
 
 ## Components
 
-- **Docker Registry v2**: Stores container images on port 5000
+- **Docker Registry v2*[text](base-os/data/docker/registry/v2/blobs)*: Stores container images on port 5000
 - **Registry UI**: Web interface on port 8080 to browse and manage images
 - **Persistent Storage**: Images stored in `./data` directory
 
