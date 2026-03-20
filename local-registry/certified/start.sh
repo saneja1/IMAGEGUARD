@@ -14,10 +14,11 @@ else
         -v "$(pwd)/data:/var/lib/registry" \
         --name imageguard-certified-registry \
         --restart always \
-        -e "REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin=[http://localhost:8080]" \
+        -e "REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin=[http://localhost:8082]" \
         -e "REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods=[HEAD,GET,OPTIONS,DELETE]" \
         -e "REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers=[Authorization,Accept,Cache-Control]" \
         -e "REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers=[Docker-Content-Digest]" \
+        -e "REGISTRY_STORAGE_DELETE_ENABLED=true" \
         registry:2
 fi
 
@@ -34,7 +35,7 @@ if [ "$(docker ps -aq -f name=imageguard-registry-ui)" ]; then
 else
     echo "Creating UI container..."
     docker run -d \
-        -p 8080:80 \
+        -p 8082:80 \
         --name imageguard-registry-ui \
         --restart always \
         -e SINGLE_REGISTRY=true \
@@ -47,7 +48,7 @@ fi
 
 echo ""
 echo "✓ Certified Images Registry running on localhost:5051"
-echo "✓ Registry UI available at http://localhost:8080"
+echo "✓ Registry UI available at http://localhost:8082"
 echo ""
 echo "To stop registry: docker stop imageguard-certified-registry"
 echo "To stop UI: docker stop imageguard-registry-ui"

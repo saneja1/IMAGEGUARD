@@ -687,10 +687,11 @@ def get_build_history():
             if img.tags[0] in base_image_tags:
                 continue
             
-            # Skip registry infrastructure images
-            if any(x in img.tags[0].lower() for x in ['registry', 'joxit', 'docker-registry-ui']):
+            # Only show images built through ImageGuard (have imageguard labels)
+            labels = img.labels or {}
+            if 'imageguard.build_status' not in labels and not img.tags[0].startswith('localhost:5051/'):
                 continue
-            
+
             # Parse image name and tag
             image_full = img.tags[0] if img.tags else img.short_id
             image_parts = image_full.split(':')
@@ -698,7 +699,6 @@ def get_build_history():
             image_tag = image_parts[1] if len(image_parts) > 1 else 'latest'
             
             # Get metadata from labels or defaults
-            labels = img.labels or {}
             base_os = labels.get('imageguard.base', 'unknown')
             runtime = labels.get('imageguard.runtime', 'unknown')
             build_status = labels.get('imageguard.build_status', 'built')
