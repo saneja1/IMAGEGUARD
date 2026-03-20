@@ -1,102 +1,113 @@
-# ImageGuard Local Registry
+# ImageGuard Local Registries
 
-This is your local Docker registry for storing pre-built container images.
+Two separate Docker registries store different stages of the image pipeline.
 
-## Components
+## Registries
 
-- **Docker Registry v2*[text](base-os/data/docker/registry/v2/blobs)*: Stores container images on port 5000
-- **Registry UI**: Web interface on port 8080 to browse and manage images
-- **Persistent Storage**: Images stored in `./data` directory
+| Registry | Port | Purpose |
+|---|---|---|
+| Base OS Registry | `5050` | Raw base OS images (Ubuntu, Alpine, RedHat) |
+| Certified Registry | `5051` | Built & security-scanned images |
+| Registry UI | `8082` | Web browser for the certified registry |
 
-## Quick Start
+---
 
-### 1. Start the Registry
+## Base OS Registry — `localhost:5050`
+
+Stores the raw base OS images that are the foundation for all ImageGuard builds.
+
+### Start
 ```bash
-cd /home/saneja/ImageGuard/local-registry
-docker-compose up -d
+cd /home/saneja/ImageGuard/local-registry/base-os
+./start.sh
 ```
 
-### 2. Verify Registry is Running
+### Verify
 ```bash
-docker-compose ps
+curl http://localhost:5050/v2/_catalog
 ```
 
-### 3. Access Web UI
-Open browser: http://localhost:8080
-
-## Using the Registry
-
-### Pull an image from Docker Hub
+### Stop
 ```bash
-docker pull alpine:latest
+docker stop imageguard-base-registry
 ```
 
-### Tag it for your local registry
-```bash
-docker tag alpine:latest localhost:5000/alpine:latest
+### Data location
+```
+local-registry/base-os/data/
 ```
 
-### Push to your local registry
+---
+
+## Certified Registry — `localhost:5051`
+
+Stores images that have been built through the ImageGuard build process. Also starts the Registry UI on `:8082`.
+
+### Start
 ```bash
-docker push localhost:5000/alpine:latest
+cd /home/saneja/ImageGuard/local-registry/certified
+./start.sh
 ```
 
-### Pull from your local registry
+### Verify
 ```bash
-docker pull localhost:5000/alpine:latest
+curl http://localhost:5051/v2/_catalog
 ```
 
-### List images in your registry
+### Browse UI
+Open: http://localhost:8082
+
+### Stop
 ```bash
-curl http://localhost:5000/v2/_catalog
+docker stop imageguard-certified-registry
+docker stop imageguard-registry-ui
+```
+
+### Data location
+```
+local-registry/certified/data/
+```
+
+---
+
+## Naming Convention
+
+```
+localhost:5051/imageguard/<os>-<runtime>-<components>:<version>
+
+Examples:
+  localhost:5051/imageguard/ubuntu22-python311-prometheus:v1.0
+  localhost:5051/imageguard/alpine-python311-prometheus:v1.0
+  localhost:5051/imageguard/redhat-python311-prometheus:v1.2
+```
+
+---
+
+## Common Commands
+
+### List all images in a registry
+```bash
+curl http://localhost:5050/v2/_catalog   # base OS
+curl http://localhost:5051/v2/_catalog   # certified
 ```
 
 ### List tags for a specific image
 ```bash
-curl http://localhost:5000/v2/alpine/tags/list
-```
-
-## Registry Structure for ImageGuard
-
-Recommended naming convention for your pre-built images:
-
-```
-localhost:5000/imageguard/<os>-<language>-<components>:<version>
-
-Examples:
-- localhost:5000/imageguard/ubuntu-python3.11-prometheus:v1.0
-- localhost:5000/imageguard/alpine-java17-vault:v1.0
-- localhost:5000/imageguard/redhat-python3.11-puppet:v1.0
-```
-
-## Management
-
-### Stop the registry
-```bash
-docker-compose down
-```
-
-### Stop and remove all data
-```bash
-docker-compose down -v
-rm -rf data/*
+curl http://localhost:5051/v2/alpine_py11_prom/tags/list
 ```
 
 ### View logs
 ```bash
-docker-compose logs -f registry
-docker-compose logs -f registry-ui
+docker logs imageguard-base-registry
+docker logs imageguard-certified-registry
+docker logs imageguard-registry-ui
 ```
 
-## Features Enabled
+### Check running containers
+```bash
+docker ps --filter "name=imageguard"
+```
 
-- ✅ Image deletion (via UI and API)
-- ✅ Persistent storage
-- ✅ Web UI for browsing
-- ✅ RESTful API on port 5000
-- ✅ Automatic restart on system reboot
-
-## Next Steps
 
 1. Pull base OS images (Ubuntu, RedHat, Alpine)
 2. Build custom images with languages and components
