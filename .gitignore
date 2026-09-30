@@ -44,6 +44,7 @@ implementation_plan.md
 myplan.md
 my_plan_flowchart.jpg
 WEB_DASHBOARD_STATUS.md
+imageguard_interview_qa.md
 
 # Image repository — contains large binary .tar files not suited for git
 image-repository/

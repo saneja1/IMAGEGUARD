@@ -1,58 +1,73 @@
 #!/bin/bash
+# ImageGuard Web Dashboard — Usage: ./web/start.sh [start|stop|restart|status]
 
-# ImageGuard Web Dashboard Startup Script
-
-echo "🛡️  Starting ImageGuard Web Dashboard..."
-echo ""
-
-# Get the script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
+PID_FILE="$PROJECT_DIR/venv/flask.pid"
+CMD="${1:-start}"
 
-# Check if we're in the correct directory
-if [ ! -f "$SCRIPT_DIR/app.py" ]; then
-    echo "Error: app.py not found in $SCRIPT_DIR"
-    exit 1
-fi
+case "$CMD" in
+  status)
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat $PID_FILE)" 2>/dev/null; then
+      echo "✓ Flask dashboard is RUNNING (port 5000) — PID $(cat $PID_FILE)"
+    else
+      echo "✗ Flask dashboard is NOT running"
+    fi
+    ;;
+  stop)
+    if [ -f "$PID_FILE" ]; then
+      kill "$(cat $PID_FILE)" 2>/dev/null && echo "✓ Flask dashboard stopped"
+      rm -f "$PID_FILE"
+    else
+      pkill -f "python3.*app.py" && echo "✓ Flask dashboard stopped" || echo "Not running"
+    fi
+    ;;
+  restart)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  start)
+    echo "Starting ImageGuard Web Dashboard..."
 
-# Check if Python 3 is available
-if ! command -v python3 &> /dev/null; then
-    echo "Error: Python 3 is not installed."
-    exit 1
-fi
+    if [ ! -f "$SCRIPT_DIR/app.py" ]; then
+      echo "Error: app.py not found in $SCRIPT_DIR"; exit 1
+    fi
 
-# Check if virtual environment exists, create if not
-if [ ! -d "$PROJECT_DIR/venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv "$PROJECT_DIR/venv"
-fi
+    if ! command -v python3 &> /dev/null; then
+      echo "Error: Python 3 is not installed."; exit 1
+    fi
 
-# Activate virtual environment
-source "$PROJECT_DIR/venv/bin/activate"
+    if [ ! -d "$PROJECT_DIR/venv" ]; then
+      echo "Creating virtual environment..."
+      python3 -m venv "$PROJECT_DIR/venv"
+    fi
 
-# Check if Flask is installed
-if ! python3 -c "import flask" 2>/dev/null; then
-    echo "Flask is not installed. Installing dependencies..."
-    pip install -q -r "$PROJECT_DIR/requirements.txt"
-fi
+    source "$PROJECT_DIR/venv/bin/activate"
 
-# Check if Docker is accessible
-if ! docker info &> /dev/null; then
-    echo "⚠️  Warning: Docker is not running or not accessible."
-    echo "   The web dashboard will start, but some features may not work."
-    echo "   To enable full functionality:"
-    echo "   - Start Docker: sudo systemctl start docker"
-    echo "   - OR add your user to docker group: sudo usermod -aG docker $USER"
+    if ! python3 -c "import flask" 2>/dev/null; then
+      echo "Installing dependencies..."
+      pip install -q -r "$PROJECT_DIR/requirements.txt"
+    fi
+
+    if ! docker info &> /dev/null; then
+      echo "⚠️  Warning: Docker not accessible. Some features may not work."
+    fi
+
+    cd "$SCRIPT_DIR"
+    export FLASK_APP=app.py
+    export FLASK_ENV=development
+
+    echo "Starting Flask on http://localhost:5000"
+    echo "Press Ctrl+C to stop"
     echo ""
-fi
 
-# Start the Flask application
-echo "Starting Flask application on http://localhost:5000"
-echo "Press Ctrl+C to stop the server"
-echo ""
-
-cd "$SCRIPT_DIR"
-export FLASK_APP=app.py
-export FLASK_ENV=development
-
-python3 app.py
+    python3 app.py &
+    echo $! > "$PID_FILE"
+    wait
+    ;;
+  *)
+    echo "Usage: ./web/start.sh [start|stop|restart|status]"
+    exit 1
+    ;;
+esac

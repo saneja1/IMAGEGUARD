@@ -1,18 +1,52 @@
 #!/bin/bash
-# Start the Certified Images Registry with UI
+# ImageGuard Certified Registry + UI — Usage: ./start.sh [start|stop|restart|status]
 
-echo "Starting ImageGuard Certified Images Registry..."
+REGISTRY="imageguard-certified-registry"
+UI="imageguard-registry-ui"
+CMD="${1:-start}"
 
-# Start the registry container
-if [ "$(docker ps -aq -f name=imageguard-certified-registry)" ]; then
-    echo "Registry container exists. Starting it..."
-    docker start imageguard-certified-registry
-else
-    echo "Creating registry container..."
-    docker run -d \
+case "$CMD" in
+  status)
+    echo "=== Certified Registry ==="
+    if [ "$(docker ps -q -f name=$REGISTRY)" ]; then
+      echo "✓ $REGISTRY is RUNNING (port 5051)"
+      docker ps --filter "name=$REGISTRY" --format "  ID: {{.ID}}  Status: {{.Status}}"
+    elif [ "$(docker ps -aq -f name=$REGISTRY)" ]; then
+      echo "✗ $REGISTRY is STOPPED"
+    else
+      echo "✗ $REGISTRY does not exist"
+    fi
+    echo ""
+    echo "=== Registry UI ==="
+    if [ "$(docker ps -q -f name=$UI)" ]; then
+      echo "✓ $UI is RUNNING (port 8082)"
+      docker ps --filter "name=$UI" --format "  ID: {{.ID}}  Status: {{.Status}}"
+    elif [ "$(docker ps -aq -f name=$UI)" ]; then
+      echo "✗ $UI is STOPPED"
+    else
+      echo "✗ $UI does not exist"
+    fi
+    ;;
+  stop)
+    echo "Stopping $UI..."
+    docker stop $UI && echo "✓ UI stopped"
+    echo "Stopping $REGISTRY..."
+    docker stop $REGISTRY && echo "✓ Registry stopped"
+    ;;
+  restart)
+    echo "Restarting containers..."
+    docker restart $REGISTRY && echo "✓ Registry restarted on localhost:5051"
+    docker restart $UI && echo "✓ UI restarted on localhost:8082"
+    ;;
+  start)
+    echo "Starting ImageGuard Certified Images Registry..."
+    if [ "$(docker ps -aq -f name=$REGISTRY)" ]; then
+      docker start $REGISTRY
+    else
+      docker run -d \
         -p 5051:5000 \
         -v "$(pwd)/data:/var/lib/registry" \
-        --name imageguard-certified-registry \
+        --name $REGISTRY \
         --restart always \
         -e "REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin=[http://localhost:8082]" \
         -e "REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods=[HEAD,GET,OPTIONS,DELETE]" \
@@ -20,23 +54,17 @@ else
         -e "REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers=[Docker-Content-Digest]" \
         -e "REGISTRY_STORAGE_DELETE_ENABLED=true" \
         registry:2
-fi
+    fi
 
-# Create network if it doesn't exist
-docker network inspect imageguard-net >/dev/null 2>&1 || docker network create imageguard-net
+    docker network inspect imageguard-net >/dev/null 2>&1 || docker network create imageguard-net
+    docker network connect imageguard-net $REGISTRY 2>/dev/null || true
 
-# Connect registry to network
-docker network connect imageguard-net imageguard-certified-registry 2>/dev/null || true
-
-# Start the UI container
-if [ "$(docker ps -aq -f name=imageguard-registry-ui)" ]; then
-    echo "UI container exists. Starting it..."
-    docker start imageguard-registry-ui
-else
-    echo "Creating UI container..."
-    docker run -d \
+    if [ "$(docker ps -aq -f name=$UI)" ]; then
+      docker start $UI
+    else
+      docker run -d \
         -p 8082:80 \
-        --name imageguard-registry-ui \
+        --name $UI \
         --restart always \
         -e SINGLE_REGISTRY=true \
         -e REGISTRY_TITLE="ImageGuard Certified Images" \
@@ -44,11 +72,13 @@ else
         -e DELETE_IMAGES=true \
         -e SHOW_CONTENT_DIGEST=true \
         joxit/docker-registry-ui:latest
-fi
+    fi
 
-echo ""
-echo "✓ Certified Images Registry running on localhost:5051"
-echo "✓ Registry UI available at http://localhost:8082"
-echo ""
-echo "To stop registry: docker stop imageguard-certified-registry"
-echo "To stop UI: docker stop imageguard-registry-ui"
+    echo "✓ Certified Registry running on localhost:5051"
+    echo "✓ Registry UI available at http://localhost:8082"
+    ;;
+  *)
+    echo "Usage: ./start.sh [start|stop|restart|status]"
+    exit 1
+    ;;
+esac

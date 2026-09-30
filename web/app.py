@@ -788,29 +788,27 @@ def sync_dockerhub():
         }), 500
     
     try:
-        # Get all built images
+        # Only sync images built by ImageGuard (must have imageguard.build_status label)
         all_images = docker_client.images.list()
-        # Skip exact base images and infrastructure images
-        exact_skip_tags = ['alpine:3.19', 'ubuntu:22.04', 'ubuntu:20.04', 'redhat/ubi9-minimal:latest']
-        skip_patterns = ['localhost:5050/', 'localhost:5051/', 'registry:', 'joxit/', 'docker-registry-ui']
-        
+        skip_patterns = ['localhost:5051/']
+
         synced_count = 0
         synced_images = []
         failed_images = []
-        
+
         for img in all_images:
             if not img.tags:
                 continue
-            
-            # Skip unwanted images
+
             image_tag = img.tags[0]
-            
-            # Skip exact base images
-            if image_tag in exact_skip_tags:
+
+            # Only process ImageGuard-built images
+            labels = img.labels or {}
+            if 'imageguard.build_status' not in labels:
                 continue
-            
-            # Skip infrastructure images and already synced images
-            should_skip = any(pattern in image_tag.lower() for pattern in skip_patterns)
+
+            # Skip images already in the certified registry
+            should_skip = any(pattern in image_tag for pattern in skip_patterns)
             if should_skip:
                 continue
             
@@ -884,8 +882,10 @@ def perform_security_scan(image_tag):
     
     try:
         # Run Trivy scan with JSON output
+        import shutil
+        trivy_path = shutil.which('trivy') or os.path.expanduser('~/bin/trivy')
         result = subprocess.run(
-            ['trivy', 'image', '--format', 'json', '--quiet', image_tag],
+            [trivy_path, 'image', '--format', 'json', '--quiet', image_tag],
             capture_output=True,
             text=True,
             timeout=300  # 5 minute timeout
