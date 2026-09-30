@@ -68,12 +68,13 @@
                 <th>Security</th>
                 <th>Scan</th>
                 <th>Dockerfile</th>
+                <th>Sync to Certified Repository</th>
                 <th>Created</th>
             </tr>
         </thead>
         <tbody id="buildHistoryBody">
             <tr>
-                <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 3rem; font-size: 1.1rem;">
+                <td colspan="10" style="text-align: center; color: #7f8c8d; padding: 3rem; font-size: 1.1rem;">
                     No build history yet. Start building images to see them here.
                 </td>
             </tr>
@@ -82,19 +83,11 @@
 </div>
 
 <div class="card" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: 2px solid #dee2e6;">
-    <div style="display: flex; justify-content: space-around; align-items: center; gap: 2rem; flex-wrap: wrap;">
-        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex: 1; min-width: 250px;">
+    <div style="display: flex; justify-content: center; align-items: center;">
+        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex: 1; min-width: 250px; max-width: 400px;">
             <div style="font-size: 3rem; color: #64748b; margin-bottom: 0.5rem;" id="totalBuiltImages">0</div>
             <div style="font-size: 1.1rem; font-weight: 600; color: #2c3e50; margin-bottom: 0.5rem;">Total Built Images</div>
-            <div style="font-size: 0.9rem; color: #7f8c8d;">Successfully built & scanned</div>
-        </div>
-        
-        <div style="text-align: center; padding: 1.5rem; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex: 1; min-width: 250px;">
-            <div style="font-size: 2rem; color: #64748b; margin-bottom: 1rem;">🚀</div>
-            <button class="btn btn-success" onclick="syncToDockerHub()" style="width: 100%; padding: 1rem; font-size: 1rem;">
-                Sync to Certified Docker Hub
-            </button>
-            <div style="font-size: 0.85rem; color: #7f8c8d; margin-top: 0.75rem;">Push verified images to registry</div>
+            <div style="font-size: 0.9rem; color: #7f8c8d;">Use <strong>Sync</strong> on a row to push that image to localhost:5051</div>
         </div>
     </div>
 </div>
@@ -246,7 +239,7 @@ function loadBuildHistory() {
             if (builds.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 2rem;">
+                        <td colspan="10" style="text-align: center; color: #7f8c8d; padding: 2rem;">
                             No build history yet. Start building images to see them here.
                         </td>
                     </tr>
@@ -281,6 +274,12 @@ function loadBuildHistory() {
                     hour: '2-digit',
                     minute: '2-digit'
                 });
+
+                const fullImage = `${build.name}:${build.tag}`;
+                const fullImageAttr = fullImage
+                    .replace(/&/g, '&amp;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/</g, '&lt;');
                 
                 return `
                     <tr>
@@ -290,8 +289,12 @@ function loadBuildHistory() {
                         <td>${build.runtime}</td>
                         <td>${buildStatusBadge}</td>
                         <td>${securityStatusBadge}</td>
-                        <td style="text-align: center;"><button class="btn" onclick="showScanDetails('${build.name}:${build.tag}')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">🔍 Details</button></td>
-                        <td style="text-align: center;"><button class="btn" onclick="showDockerfileDetails('${build.name}:${build.tag}')" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">📄 Details</button></td>
+                        <td style="text-align: center;"><button type="button" class="btn" data-action="scan" data-image="${fullImageAttr}" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">🔍 Details</button></td>
+                        <td style="text-align: center;"><button type="button" class="btn" data-action="dockerfile" data-image="${fullImageAttr}" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">📄 Details</button></td>
+                        <td style="text-align: center; white-space: nowrap;">
+                            <button type="button" class="btn btn-success sync-btn" data-action="sync" data-image="${fullImageAttr}" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">🚀 Sync</button>
+                            <div class="sync-status" style="font-size: 0.75rem; color: #7f8c8d; margin-top: 0.25rem;"></div>
+                        </td>
                         <td style="color: #7f8c8d; font-size: 0.85rem; white-space: nowrap;">${createdDate}</td>
                     </tr>
                 `;
@@ -307,6 +310,77 @@ function loadBuildHistory() {
 
 // Load build history on page load
 loadBuildHistory();
+
+// Event delegation for history row actions (more reliable than inline onclick)
+document.getElementById('buildHistoryBody').addEventListener('click', function(e) {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const imageTag = btn.getAttribute('data-image');
+    const action = btn.getAttribute('data-action');
+    if (action === 'scan') {
+        showScanDetails(imageTag);
+    } else if (action === 'dockerfile') {
+        showDockerfileDetails(imageTag);
+    } else if (action === 'sync') {
+        syncImage(imageTag, btn);
+    }
+});
+
+// Sync one image from Build History to certified registry (5051)
+function syncImage(imageTag, btn) {
+    const statusEl = btn ? btn.parentElement.querySelector('.sync-status') : null;
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Syncing...';
+    }
+    if (statusEl) {
+        statusEl.style.color = '#7f8c8d';
+        statusEl.textContent = 'Pushing to localhost:5051...';
+    }
+
+    fetch('/api/sync-dockerhub', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image: imageTag })
+    })
+    .then(response => response.json().then(data => ({ ok: response.ok, data })))
+    .then(({ ok, data }) => {
+        if (ok && data.status === 'success') {
+            if (btn) {
+                btn.textContent = '✓ Synced';
+                btn.disabled = false;
+            }
+            if (statusEl) {
+                statusEl.style.color = '#198754';
+                statusEl.textContent = 'Now in localhost:5051';
+            }
+        } else {
+            if (btn) {
+                btn.textContent = '🚀 Sync';
+                btn.disabled = false;
+            }
+            if (statusEl) {
+                statusEl.style.color = '#dc3545';
+                statusEl.textContent = data.message || 'Sync failed';
+            }
+            alert('Sync failed: ' + (data.message || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Sync error:', error);
+        if (btn) {
+            btn.textContent = '🚀 Sync';
+            btn.disabled = false;
+        }
+        if (statusEl) {
+            statusEl.style.color = '#dc3545';
+            statusEl.textContent = String(error);
+        }
+        alert('Error syncing image: ' + error);
+    });
+}
 
 // Show security scan details modal
 function showScanDetails(imageTag) {
@@ -471,32 +545,6 @@ document.getElementById('scanModal').addEventListener('click', function(e) {
         closeScanModal();
     }
 });
-
-// Sync to Docker Hub function
-function syncToDockerHub() {
-    const confirmed = confirm('Are you sure you want to sync all successfully built and scanned images to the certified Docker Hub?');
-    
-    if (!confirmed) return;
-    
-    fetch('/api/sync-dockerhub', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            alert(`✅ Sync completed!\n\n${data.message}\n\nImages synced: ${data.synced_count}`);
-        } else {
-            alert('❌ Sync failed!\n\n' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Sync error:', error);
-        alert('❌ Error syncing to Docker Hub: ' + error);
-    });
-}
 </script>
 {% endblock %}
 

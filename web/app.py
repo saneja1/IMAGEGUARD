@@ -223,16 +223,18 @@ def get_certified_images():
     import requests
     try:
         # Get catalog from certified registry
-        response = requests.get('http://localhost:5051/v2/_catalog')
+        response = requests.get('http://localhost:5051/v2/_catalog', timeout=5)
         catalog = response.json()
         
         images = []
-        for repo in catalog.get('repositories', []):
+        for repo in catalog.get('repositories') or []:
             # Get tags for each repository
-            tags_response = requests.get(f'http://localhost:5051/v2/{repo}/tags/list')
+            tags_response = requests.get(f'http://localhost:5051/v2/{repo}/tags/list', timeout=5)
             tags_data = tags_response.json()
+            # Empty/deleted repos return "tags": null
+            tags = tags_data.get('tags') or []
             
-            for tag in tags_data.get('tags', []):
+            for tag in tags:
                 images.append({
                     'name': repo,
                     'tag': tag,
@@ -252,15 +254,18 @@ def get_certified_images_grouped():
     import requests
     try:
         # Get catalog from certified registry
-        response = requests.get('http://localhost:5051/v2/_catalog')
+        response = requests.get('http://localhost:5051/v2/_catalog', timeout=5)
         catalog = response.json()
         
         grouped_images = []
-        for repo in catalog.get('repositories', []):
+        for repo in catalog.get('repositories') or []:
             # Get tags count for each repository
-            tags_response = requests.get(f'http://localhost:5051/v2/{repo}/tags/list')
+            tags_response = requests.get(f'http://localhost:5051/v2/{repo}/tags/list', timeout=5)
             tags_data = tags_response.json()
-            tags = tags_data.get('tags', [])
+            # Empty/deleted repos return "tags": null — skip those
+            tags = tags_data.get('tags') or []
+            if not tags:
+                continue
             
             grouped_images.append({
                 'name': repo,
@@ -683,20 +688,31 @@ def get_build_history():
             if not img.tags:
                 continue
             
+            # Prefer a local tag (not already under 5051) for display/sync
+            image_full = next(
+                (t for t in img.tags if not t.startswith('localhost:5051/')),
+                img.tags[0]
+            )
+
             # Skip exact base images
-            if img.tags[0] in base_image_tags:
+            if image_full in base_image_tags:
                 continue
             
             # Only show images built through ImageGuard (have imageguard labels)
             labels = img.labels or {}
-            if 'imageguard.build_status' not in labels and not img.tags[0].startswith('localhost:5051/'):
+            if 'imageguard.build_status' not in labels:
                 continue
 
             # Parse image name and tag
-            image_full = img.tags[0] if img.tags else img.short_id
-            image_parts = image_full.split(':')
-            image_name = image_parts[0]
-            image_tag = image_parts[1] if len(image_parts) > 1 else 'latest'
+            # Split only on the last ':' so names with ports/paths stay intact
+            if ':' in image_full:
+                image_name, image_tag = image_full.rsplit(':', 1)
+            else:
+                image_name, image_tag = image_full, 'latest'
+
+            # Strip registry prefix if somehow still present
+            if image_name.startswith('localhost:5051/'):
+                image_name = image_name[len('localhost:5051/'):]
             
             # Get metadata from labels or defaults
             base_os = labels.get('imageguard.base', 'unknown')
@@ -716,6 +732,13 @@ def get_build_history():
                 'size': img.attrs['Size']
             })
         
+        # Deduplicate by name:tag (same image may have multiple Docker tags)
+        unique = {}
+        for item in build_history:
+            key = f"{item['name']}:{item['tag']}"
+            unique[key] = item
+        build_history = list(unique.values())
+
         # Sort by creation time (most recent first)
         build_history.sort(key=lambda x: x['created'], reverse=True)
         
@@ -779,7 +802,7 @@ FROM {image.tags[0] if image.tags else 'unknown'}
 
 @app.route('/api/sync-dockerhub', methods=['POST'])
 def sync_dockerhub():
-    """Sync built images to certified registry"""
+    """Sync one built image (or all ImageGuard-built images) to certified registry"""
     
     if not docker_client:
         return jsonify({
@@ -788,7 +811,51 @@ def sync_dockerhub():
         }), 500
     
     try:
-        # Only sync images built by ImageGuard (must have imageguard.build_status label)
+        data = request.json or {}
+        selected_image = (data.get('image') or '').strip()
+
+        # Single-image sync (from Build History row button)
+        if selected_image:
+            # Don't re-push something already addressed as certified
+            if selected_image.startswith('localhost:5051/'):
+                return jsonify({
+                    'status': 'error',
+                    'message': f'{selected_image} is already a certified registry tag'
+                }), 400
+
+            try:
+                image = docker_client.images.get(selected_image)
+            except Exception:
+                return jsonify({
+                    'status': 'error',
+                    'message': f'Image not found locally: {selected_image}'
+                }), 404
+
+            labels = image.labels or {}
+            if 'imageguard.build_status' not in labels:
+                return jsonify({
+                    'status': 'error',
+                    'message': f'{selected_image} was not built through ImageGuard'
+                }), 400
+
+            result = push_to_certified_registry(selected_image)
+            if result['status'] == 'success':
+                return jsonify({
+                    'status': 'success',
+                    'message': f'Synced {selected_image} to certified registry as localhost:5051/{selected_image}',
+                    'synced_count': 1,
+                    'synced_images': [selected_image],
+                    'failed_images': []
+                })
+            return jsonify({
+                'status': 'error',
+                'message': result.get('message', 'Push failed'),
+                'synced_count': 0,
+                'synced_images': [],
+                'failed_images': [selected_image]
+            }), 500
+
+        # Legacy: sync all ImageGuard-built images
         all_images = docker_client.images.list()
         skip_patterns = ['localhost:5051/']
 
