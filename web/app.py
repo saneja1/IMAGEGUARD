@@ -1370,36 +1370,41 @@ def get_base_images():
     
     try:
         # Get catalog of repositories from base OS registry
-        catalog_response = requests.get('http://localhost:5050/v2/_catalog')
-        if catalog_response.status_code == 200:
-            repositories = catalog_response.json().get('repositories', [])
-            
-            # For each repository, get its tags
-            for repo in repositories:
-                tags_response = requests.get(f'http://localhost:5050/v2/{repo}/tags/list')
-                if tags_response.status_code == 200:
-                    tags = tags_response.json().get('tags', [])
-                    
-                    # Add each tag as a separate option
-                    for tag in tags:
-                        # Format display name
-                        display_name = f"{repo}:{tag}"
-                        if 'nessus' in repo.lower():
-                            display_name = f"Tenable Nessus - {tag}"
-                        elif 'alpine' in repo.lower():
-                            display_name = f"Alpine Linux - {tag}"
-                        elif 'ubuntu' in repo.lower():
-                            display_name = f"Ubuntu - {tag}"
-                        elif 'redhat' in repo.lower() or 'ubi' in repo.lower():
-                            display_name = f"Red Hat UBI - {tag}"
-                        
-                        base_images.append({
-                            'name': display_name,
-                            'tag': f'localhost:5050/{repo}:{tag}'
-                        })
+        catalog_response = requests.get('http://localhost:5050/v2/_catalog', timeout=5)
+        if catalog_response.status_code != 200:
+            raise Exception(f"Catalog request failed: HTTP {catalog_response.status_code}")
+
+        repositories = catalog_response.json().get('repositories') or []
+
+        # For each repository, get its tags (skip empty/deleted repos)
+        for repo in repositories:
+            tags_response = requests.get(f'http://localhost:5050/v2/{repo}/tags/list', timeout=5)
+            if tags_response.status_code != 200:
+                continue
+
+            # Registry returns "tags": null for empty repos — treat as no tags
+            tags = tags_response.json().get('tags') or []
+            if not tags:
+                continue
+
+            for tag in tags:
+                display_name = f"{repo}:{tag}"
+                if 'nessus' in repo.lower():
+                    display_name = f"Tenable Nessus - {tag}"
+                elif 'alpine' in repo.lower():
+                    display_name = f"Alpine Linux - {tag}"
+                elif 'ubuntu' in repo.lower():
+                    display_name = f"Ubuntu - {tag}"
+                elif 'redhat' in repo.lower() or 'ubi' in repo.lower():
+                    display_name = f"Red Hat UBI - {tag}"
+
+                base_images.append({
+                    'name': display_name,
+                    'tag': f'localhost:5050/{repo}:{tag}'
+                })
     except Exception as e:
         print(f"Error fetching base images from registry: {e}")
-        # Fallback to hardcoded list if registry is unavailable
+        # Only use fallback when the registry itself is unreachable
         base_images = [
             {'name': 'Alpine Linux 3.19', 'tag': 'localhost:5050/alpine:3.19'},
             {'name': 'Ubuntu 22.04 LTS', 'tag': 'localhost:5050/ubuntu:22.04'},
