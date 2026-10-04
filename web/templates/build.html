@@ -92,11 +92,11 @@
     </div>
 </div>
 
-<!-- Modal for Security Scan Details -->
+<!-- Shared details modal (title set by JS) -->
 <div id="scanModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
     <div style="background: white; padding: 2rem; border-radius: 8px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2 style="margin: 0;">🔒 Security Scan Details</h2>
+            <h2 id="scanModalTitle" style="margin: 0;">Details</h2>
             <button onclick="closeScanModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d;">&times;</button>
         </div>
         <div id="scanModalContent"></div>
@@ -389,6 +389,7 @@ function showScanDetails(imageTag) {
         .then(scan => {
             const modal = document.getElementById('scanModal');
             const content = document.getElementById('scanModalContent');
+            document.getElementById('scanModalTitle').textContent = '🔒 Security Scan Details';
             
             let statusBadge;
             if (scan.status === 'passed') {
@@ -517,14 +518,14 @@ function showDockerfileDetails(imageTag) {
         .then(data => {
             const modal = document.getElementById('scanModal');
             const content = document.getElementById('scanModalContent');
+            document.getElementById('scanModalTitle').textContent = '📄 Dockerfile';
             
             content.innerHTML = `
                 <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
                     <p style="margin-bottom: 0.5rem;"><strong>Image:</strong> <code>${imageTag}</code></p>
                 </div>
                 
-                <h3 style="margin-bottom: 1rem;">Dockerfile Content</h3>
-                <pre style="background: #2c3e50; color: #ecf0f1; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; max-height: 400px;">${data.dockerfile}</pre>
+                <pre style="background: #2c3e50; color: #ecf0f1; padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 0.85rem; line-height: 1.6; max-height: 400px;">${data.dockerfile || data.error || 'No Dockerfile available'}</pre>
                 
                 <div style="text-align: center; margin-top: 1.5rem;">
                     <button onclick="closeScanModal()" class="btn btn-success">Close</button>

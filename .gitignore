@@ -40,6 +40,7 @@ local-registry/*/data/
 
 # Internal planning & design docs (keep local only)
 cicd/
+enterprise_version/
 implementation_plan.md
 myplan.md
 my_plan_flowchart.jpg
